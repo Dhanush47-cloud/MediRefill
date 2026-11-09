@@ -8,7 +8,8 @@ Responsive pharmacy reordering prototype for Company A's Kolkata/Howrah brief.
 - Tesseract OCR for prescription images and first PDF page. OCR results are structured as an **unverified draft** and displayed in the pharmacist queue.
 - Pharmacist approve, reject with reason or request re-upload. Schedule H/H1 orders stay blocked until pharmacist approval; Schedule X/narcotic orders are blocked from online ordering.
 - Stock-aware nearest eligible store routing from seeded sample data; operations CSV stock import.
-- Refill reminder screen and operations dashboard.
+- Refill reminder screen and operations dashboard with live inventory by store.
+- Inventory quantities are deducted when a pharmacist approves an order; approval is blocked when the selected store does not have sufficient stock.
 - Prescription files encrypted at rest using Fernet; CSRF protection on forms; role checks; access audit events.
 
 ## Local setup
@@ -32,8 +33,26 @@ Run `pytest -q`. GitHub Actions workflow is included. Tests cover password hashi
 ## Repository
 Public source repository: https://github.com/Dhanush47-cloud/MediRefill
 
-## Deployment
-A Render Blueprint (`render.yaml`) and Dockerfile are included. Connect the repository to Render, add the secrets and SMTP values, and provision the persistent disk. A public live URL is not claimed until the service has been created and verified.
+## Deployment — PythonAnywhere
+The current demo deployment is hosted on PythonAnywhere:
+
+- **Live application:** https://dhanushban.pythonanywhere.com
+- **Operations dashboard:** https://dhanushban.pythonanywhere.com/ops
+- **Hosting:** PythonAnywhere (Flask web app)
+- **Application directory:** `/home/DhanushBan/MediRefill`
+- **WSGI entry point:** `app.py` is exposed as the WSGI application.
+- **Database:** SQLite database stored in the project directory (`medirefill.db`).
+- **Prescription storage:** Encrypted uploads are stored in the private `private_uploads/` directory.
+
+### PythonAnywhere deployment notes
+1. Upload or clone the project into the application directory.
+2. Create and configure a virtual environment, then install dependencies from `requirements.txt`.
+3. Configure the PythonAnywhere Web app to use the project's virtual environment and WSGI file.
+4. Set `FLASK_SECRET_KEY` and `PRESCRIPTION_ENCRYPTION_KEY` in the WSGI configuration before importing the Flask application. Keep these values private and stable; changing the encryption key makes previously encrypted prescription files unreadable.
+5. Ensure the SQLite database and private upload directory remain in persistent project storage. Do not delete them when updating application code.
+6. After code or template changes, reload the web app from the PythonAnywhere **Web** tab.
+
+**Hosting note:** This demo uses the PythonAnywhere free tier. Free-tier resource limits and renewal requirements may apply; sign in to the PythonAnywhere account regularly and check its current plan terms. The live URL is a demonstration deployment, not a production pharmacy service.
 
 ## Safety / limitations
 - Tesseract OCR is real text recognition, but handwritten prescription accuracy is not clinically validated. Illegible or low-confidence text must be manually reviewed or re-uploaded. OCR never approves a medicine or dosage.
